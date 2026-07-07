@@ -10,14 +10,19 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.junit.Assert;
 
+import java.util.List;
+
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
 
 /**
- * Step Definitions para os cenários de teste de API com REST Assured.
- * Utiliza a API pública JSONPlaceholder (https://jsonplaceholder.typicode.com).
+ * Step Definitions para os cenários de teste de API.
+ * URL base e dados de requisição ficam aqui, fora dos arquivos .feature,
+ * seguindo a boa prática de BDD de esconder detalhes de infraestrutura.
  */
 public class ApiSteps {
+
+    // Detalhes de infraestrutura centralizados aqui, não expostos no .feature
+    private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
 
     private RequestSpecification request;
     private Response response;
@@ -26,62 +31,79 @@ public class ApiSteps {
     // CONTEXTO / CONFIGURAÇÃO
     // -------------------------------------------------------------------------
 
-    @Dado("que a URL base da API é {string}")
-    public void queAUrlBaseDaApiE(String baseUrl) {
-        RestAssured.baseURI = baseUrl;
-        // Prepara uma nova requisição limpa para cada cenário
+    @Dado("que estou consumindo a API de posts")
+    public void queEstouConsumindoAApiDePosts() {
+        RestAssured.baseURI = BASE_URL;
         request = given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
-                .log().all(); // loga headers e body no console para facilitar debug
+                .log().all();
     }
 
-    @Dado("que tenho o seguinte corpo de requisição:")
-    public void queTenhoOSeguinteCorpoDeRequisicao(String body) {
-        request = request.body(body);
+    @Dado("que tenho os dados de um novo post")
+    public void queTenhoOsDadosDeUmNovoPost() {
+        String corpo = "{"
+                + "\"title\": \"Post de Teste Automatizado\","
+                + "\"body\": \"Conteudo criado via REST Assured + Cucumber\","
+                + "\"userId\": 1"
+                + "}";
+        request = request.body(corpo);
+    }
+
+    @Dado("que tenho os dados de atualização do post {int}")
+    public void queTenhoOsDadosDeAtualizacaoDoPost(int id) {
+        String corpo = "{"
+                + "\"id\": " + id + ","
+                + "\"title\": \"Titulo Atualizado\","
+                + "\"body\": \"Corpo atualizado via REST Assured\","
+                + "\"userId\": 1"
+                + "}";
+        request = request.body(corpo);
     }
 
     // -------------------------------------------------------------------------
     // AÇÕES (WHEN)
     // -------------------------------------------------------------------------
 
-    @Quando("faço uma requisição GET para {string}")
-    public void facoUmaRequisicaoGetPara(String endpoint) {
-        response = request
-                .when()
-                .get(endpoint)
-                .then()
-                .log().status().log().body() // loga status e body da resposta
+    @Quando("busco todos os posts")
+    public void buscoTodosOsPosts() {
+        response = request.when().get("/posts")
+                .then().log().status().log().body()
                 .extract().response();
     }
 
-    @Quando("faço uma requisição POST para {string}")
-    public void facoUmaRequisicaoPostPara(String endpoint) {
-        response = request
-                .when()
-                .post(endpoint)
-                .then()
-                .log().status().log().body()
+    @Quando("busco o post de ID {int}")
+    public void buscoOPostDeId(int id) {
+        response = request.when().get("/posts/" + id)
+                .then().log().status().log().body()
                 .extract().response();
     }
 
-    @Quando("faço uma requisição PUT para {string}")
-    public void facoUmaRequisicaoPutPara(String endpoint) {
-        response = request
-                .when()
-                .put(endpoint)
-                .then()
-                .log().status().log().body()
+    @Quando("busco os posts do usuário {int}")
+    public void buscoOsPostsDoUsuario(int userId) {
+        response = request.when().get("/posts?userId=" + userId)
+                .then().log().status().log().body()
                 .extract().response();
     }
 
-    @Quando("faço uma requisição DELETE para {string}")
-    public void facoUmaRequisicaoDeletePara(String endpoint) {
-        response = request
-                .when()
-                .delete(endpoint)
-                .then()
-                .log().status().log().body()
+    @Quando("envio o novo post")
+    public void envioONovoPost() {
+        response = request.when().post("/posts")
+                .then().log().status().log().body()
+                .extract().response();
+    }
+
+    @Quando("atualizo o post {int}")
+    public void atualizoOPost(int id) {
+        response = request.when().put("/posts/" + id)
+                .then().log().status().log().body()
+                .extract().response();
+    }
+
+    @Quando("deleto o post {int}")
+    public void deletoOPost(int id) {
+        response = request.when().delete("/posts/" + id)
+                .then().log().status().log().body()
                 .extract().response();
     }
 
@@ -110,31 +132,19 @@ public class ApiSteps {
     @E("a resposta deve conter {int} posts")
     public void aRespostaDeveConterPosts(int quantidadeEsperada) {
         int tamanho = response.jsonPath().getList("$").size();
-        Assert.assertEquals(
-                "Quantidade de posts incorreta",
-                quantidadeEsperada,
-                tamanho
-        );
+        Assert.assertEquals("Quantidade de posts incorreta", quantidadeEsperada, tamanho);
     }
 
     @E("o campo {string} deve ter valor inteiro {int}")
     public void oCampoDeveTerValorInteiro(String campo, int valorEsperado) {
         int valorAtual = response.jsonPath().getInt(campo);
-        Assert.assertEquals(
-                "Valor do campo '" + campo + "' incorreto",
-                valorEsperado,
-                valorAtual
-        );
+        Assert.assertEquals("Valor do campo '" + campo + "' incorreto", valorEsperado, valorAtual);
     }
 
     @E("o campo {string} deve ter valor de texto {string}")
     public void oCampoDeveTerValorDeTexto(String campo, String valorEsperado) {
         String valorAtual = response.jsonPath().getString(campo);
-        Assert.assertEquals(
-                "Valor do campo '" + campo + "' incorreto",
-                valorEsperado,
-                valorAtual
-        );
+        Assert.assertEquals("Valor do campo '" + campo + "' incorreto", valorEsperado, valorAtual);
     }
 
     @E("o campo {string} não deve estar vazio")
@@ -146,8 +156,7 @@ public class ApiSteps {
 
     @E("todos os posts devem ter {string} igual a {int}")
     public void todosOsPostsDevemTerIgualA(String campo, int valorEsperado) {
-        // Extrai todos os valores do campo em todos os objetos da lista raiz
-        java.util.List<Integer> valores = response.jsonPath().getList(campo, Integer.class);
+        List<Integer> valores = response.jsonPath().getList(campo, Integer.class);
         Assert.assertFalse("A lista de posts está vazia", valores.isEmpty());
         for (int i = 0; i < valores.size(); i++) {
             Assert.assertEquals(

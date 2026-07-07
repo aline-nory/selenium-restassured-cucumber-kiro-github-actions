@@ -16,16 +16,14 @@ public class LoginPage {
     private final WebDriverWait wait;
 
     // Locators
-    private final By campoUsuario    = By.name("username");
-    private final By campoSenha      = By.name("password");
-    private final By botaoLogin      = By.cssSelector("button[type='submit']");
-    private final By mensagemErro    = By.cssSelector(".oxd-alert-content-text");
+    private final By campoUsuario       = By.name("username");
+    private final By campoSenha         = By.name("password");
+    private final By botaoLogin         = By.cssSelector("button[type='submit']");
+    private final By mensagemErro       = By.cssSelector(".oxd-alert-content-text");
     private final By mensagemBoasVindas = By.cssSelector(".oxd-userdropdown-name");
-    private final By tituloPagina    = By.cssSelector(".oxd-text--h6");
 
     public LoginPage(WebDriver driver) {
         this.driver = driver;
-        // Selenium 3: WebDriverWait recebe timeout em segundos (long)
         this.wait = new WebDriverWait(driver, 10);
     }
 
@@ -34,10 +32,11 @@ public class LoginPage {
         driver.get(url);
     }
 
-    /** Preenche um campo de input pelo seu atributo name ou placeholder. */
+    /** Preenche um campo de input pelo seu atributo name. */
     public void preencherCampo(String nomeCampo, String valor) {
-        By locator = By.name(nomeCampo);
-        WebElement campo = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        WebElement campo = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.name(nomeCampo))
+        );
         campo.clear();
         campo.sendKeys(valor);
     }
@@ -49,16 +48,19 @@ public class LoginPage {
 
     /** Retorna o texto da mensagem de erro exibida após login inválido. */
     public String obterMensagemErro() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(mensagemErro)).getText();
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(mensagemErro)
+        ).getText();
     }
 
-    /** Retorna o texto de boas-vindas exibido após login bem-sucedido. */
+    /** Retorna o nome do usuário exibido após login bem-sucedido. */
     public String obterMensagemBoasVindas() {
-        // Aguarda o dropdown de usuario no topo da pagina apos login
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(mensagemBoasVindas)).getText();
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(mensagemBoasVindas)
+        ).getText();
     }
 
-    /** Verifica se o usuário foi redirecionado para a página inicial (dashboard). */
+    /** Verifica se o usuário foi redirecionado para a página inicial. */
     public boolean estaNaPaginaInicial() {
         try {
             wait.until(ExpectedConditions.urlContains("/dashboard"));

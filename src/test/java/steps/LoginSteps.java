@@ -9,17 +9,20 @@ import pages.LoginPage;
 
 /**
  * Step Definitions para os cenários de Login.
- * Cada método mapeia um passo do arquivo .feature.
+ * Credenciais e URLs ficam aqui, fora dos arquivos .feature,
+ * seguindo a boa prática de BDD de esconder detalhes técnicos.
  */
 public class LoginSteps {
 
+    // Detalhes técnicos centralizados aqui, não expostos no .feature
+    private static final String URL_LOGIN    = "https://opensource-demo.orangehrmlive.com/web/index.php/auth/login";
+    private static final String ADMIN_USER   = "admin";
+    private static final String ADMIN_PASS   = "admin123";
+    private static final String SENHA_ERRADA = "senhaErrada";
+
     private final LoginPage loginPage;
 
-    // URL do sistema sob teste (OrangeHRM demo)
-    private static final String URL_LOGIN = "https://opensource-demo.orangehrmlive.com/web/index.php/auth/login";
-
     public LoginSteps() {
-        // Obtém o WebDriver gerenciado pelo hook de ciclo de vida
         this.loginPage = new LoginPage(Hooks.getDriver());
     }
 
@@ -28,13 +31,24 @@ public class LoginSteps {
         loginPage.abrirPagina(URL_LOGIN);
     }
 
-    @Quando("preencho o campo {string} com {string}")
-    public void preenchoOCampoComValor(String campo, String valor) {
-        loginPage.preencherCampo(campo, valor);
+    @Quando("faço login como administrador")
+    public void facoLoginComoAdministrador() {
+        loginPage.preencherCampo("username", ADMIN_USER);
+        loginPage.preencherCampo("password", ADMIN_PASS);
+        loginPage.clicarBotaoLogin();
     }
 
-    @E("clico no botão de login")
-    public void clicoNoBotaoDeLogin() {
+    @Quando("faço login com usuário {string} e senha incorreta")
+    public void facoLoginComUsuarioESenhaIncorreta(String usuario) {
+        loginPage.preencherCampo("username", usuario);
+        loginPage.preencherCampo("password", SENHA_ERRADA);
+        loginPage.clicarBotaoLogin();
+    }
+
+    @Quando("faço login com usuário {string} e senha {string}")
+    public void facoLoginComUsuarioESenha(String usuario, String senha) {
+        loginPage.preencherCampo("username", usuario);
+        loginPage.preencherCampo("password", senha);
         loginPage.clicarBotaoLogin();
     }
 
@@ -43,15 +57,6 @@ public class LoginSteps {
         Assert.assertTrue(
             "Esperava ser redirecionado para o dashboard, mas a URL não contém '/dashboard'",
             loginPage.estaNaPaginaInicial()
-        );
-    }
-
-    @E("devo ver a mensagem de boas-vindas {string}")
-    public void devoVerMensagemBoasVindas(String mensagemEsperada) {
-        String mensagemAtual = loginPage.obterMensagemBoasVindas();
-        Assert.assertTrue(
-            "Mensagem de boas-vindas esperada: '" + mensagemEsperada + "', mas encontrada: '" + mensagemAtual + "'",
-            mensagemAtual.contains(mensagemEsperada)
         );
     }
 

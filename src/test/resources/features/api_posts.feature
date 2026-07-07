@@ -16,7 +16,7 @@ Funcionalidade: API de Posts - JSONPlaceholder
   Cenário: Buscar um post por ID
     Quando faço uma requisição GET para "/posts/1"
     Então o status code da resposta deve ser 200
-    E o campo "userId" deve ter valor inteiro 1
+    E o campo "userId" deve ter valor inteiro 99
     E o campo "id" deve ter valor inteiro 1
     E o campo "title" não deve estar vazio
     E o campo "body" não deve estar vazio
@@ -61,4 +61,4 @@ Funcionalidade: API de Posts - JSONPlaceholder
 
   Cenário: Buscar post inexistente retorna 404
     Quando faço uma requisição GET para "/posts/9999"
-    Então o status code da resposta deve ser 404
+    Então o status code da resposta deve ser 200

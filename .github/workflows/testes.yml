@@ -1,0 +1,61 @@
+name: Automacao de Testes - Selenium + REST Assured
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  # Permite rodar manualmente pela aba Actions no GitHub
+  workflow_dispatch:
+
+jobs:
+  testes:
+    name: Executar Testes (UI + API)
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Faz checkout do código
+      - name: Checkout do repositorio
+        uses: actions/checkout@v4
+
+      # 2. Configura Java 8
+      - name: Configurar Java 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: maven  # faz cache do ~/.m2 para builds mais rápidos
+
+      # 3. Instala o Google Chrome
+      - name: Instalar Google Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      # 4. Instala o ChromeDriver compatível com o Chrome instalado
+      - name: Instalar ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      # 5. Executa todos os testes (UI headless + API)
+      - name: Executar testes Maven
+        run: mvn test --no-transfer-progress
+        env:
+          CI: true  # ativa modo headless automaticamente no Hooks.java
+
+      # 6. Publica o relatório HTML como artefato (disponível na aba Actions)
+      - name: Publicar relatorio Cucumber
+        uses: actions/upload-artifact@v4
+        if: always()  # publica mesmo se os testes falharem
+        with:
+          name: cucumber-report-${{ github.run_number }}
+          path: target/cucumber-reports/
+          retention-days: 30
+
+      # 7. Publica resultado JUnit para visualização nativa no GitHub
+      - name: Publicar resultado JUnit
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: target/cucumber-reports/cucumber.xml
+          detailed_summary: true
+          include_passed: true

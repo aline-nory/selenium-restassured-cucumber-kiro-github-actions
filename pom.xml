@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.automacao</groupId>
+    <artifactId>selenium-cucumber-cicd-kiro</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>selenium-cucumber-cicd-kiro</name>
+    <description>Automação de testes Web (Selenium) e API (REST Assured) com Cucumber BDD, JUnit e pipeline CI/CD via GitHub Actions. Projeto gerado com Kiro AI.</description>
+
+    <properties>
+        <java.version>8</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Versões das dependências -->
+        <!-- Selenium 3.x — última versão compatível com Java 8 -->
+        <selenium.version>3.141.59</selenium.version>
+        <!-- Cucumber 7.x requer Java 8+ -->
+        <cucumber.version>7.18.0</cucumber.version>
+        <junit.version>4.13.2</junit.version>
+        <!-- REST Assured 4.x — última versão com suporte a Java 8 -->
+        <rest.assured.version>4.5.1</rest.assured.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- Selenium WebDriver -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+
+        <!-- Cucumber JVM -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${cucumber.version}</version>
+        </dependency>
+
+        <!-- Cucumber + JUnit integration -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- REST Assured - testes de API REST -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>${rest.assured.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JSON Schema Validator - valida estrutura da resposta -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${rest.assured.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- Maven Surefire Plugin - executa os testes JUnit -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <includes>
+                        <include>**/Runner*.java</include>
+                        <include>**/*Runner.java</include>
+                    </includes>
+                    <!-- Passa o truststore customizado para a JVM forked do Surefire.
+                         Necessário porque o Avast substitui certificados SSL e o
+                         Java 8 não reconhece o certificado gerado pelo antivírus. -->
+                    <argLine>
+                        -Djavax.net.ssl.trustStore=${user.home}/.maven-cacerts
+                        -Djavax.net.ssl.trustStorePassword=changeit
+                    </argLine>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,30 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Drivers locais (não subir o ChromeDriver no repositório)
+chromedriver*
+geckodriver*
+
+# Credenciais e certificados locais (específicos da máquina)
+*.cacerts
+.maven-cacerts

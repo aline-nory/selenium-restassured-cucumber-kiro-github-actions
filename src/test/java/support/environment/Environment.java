@@ -1,13 +1,17 @@
 package support.environment;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Carrega configurações de ambiente a partir do config.properties.
- * Permite execução em diferentes ambientes via Maven: mvn test -Denvironment=HQA
+ * Carrega configuracoes de ambiente a partir do config.properties via classpath.
+ * Permite execucao em diferentes ambientes via Maven: mvn test -Denvironment=HQA
+ *
+ * Hierarquia de configuracao (prioridade):
+ *   1. System Property (-Denvironment=HQA) — override por execucao
+ *   2. Variavel de ambiente (ENVIRONMENT=HQA) — CI/CD
+ *   3. config.properties — valor padrao
  */
 public class Environment {
 
@@ -17,10 +21,9 @@ public class Environment {
     public String baseUrl;
 
     private static Properties config;
-    public static String projectPath = System.getProperty("user.dir");
 
     static {
-        config = getPropertiesFromFile(projectPath + File.separator + "config.properties");
+        config = loadFromClasspath("config.properties");
     }
 
     public static String ambiente_DEV = config.getProperty("url_DEV");
@@ -33,8 +36,11 @@ public class Environment {
     }
 
     private void setupEnvironment() {
+        // Prioridade: System Property > Env Var > config.properties
         if (System.getProperty("environment") != null) {
             environment = System.getProperty("environment");
+        } else if (System.getenv("ENVIRONMENT") != null) {
+            environment = System.getenv("ENVIRONMENT");
         } else {
             environment = config.getProperty("environment");
         }
@@ -57,15 +63,30 @@ public class Environment {
     }
 
     public String getProperty(String key) {
+        // Prioridade: variavel de ambiente > config.properties
+        String envValue = System.getenv(key.replace(".", "_").toUpperCase());
+        if (envValue != null) {
+            return envValue;
+        }
         return config.getProperty(key);
     }
 
-    private static Properties getPropertiesFromFile(String filePath) {
+    /**
+     * Carrega properties do classpath (src/test/resources/).
+     * Funciona independente do diretorio de execucao (local, CI, IDE).
+     */
+    private static Properties loadFromClasspath(String fileName) {
         Properties properties = new Properties();
-        try (FileInputStream input = new FileInputStream(filePath)) {
+        try (InputStream input = Environment.class.getClassLoader()
+                .getResourceAsStream(fileName)) {
+            if (input == null) {
+                throw new RuntimeException(
+                    "Arquivo " + fileName + " nao encontrado no classpath. "
+                    + "Verifique se esta em src/test/resources/");
+            }
             properties.load(input);
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao carregar config.properties: " + e.getMessage());
+            throw new RuntimeException("Erro ao carregar " + fileName + ": " + e.getMessage());
         }
         return properties;
     }

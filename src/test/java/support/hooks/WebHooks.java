@@ -16,6 +16,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Hooks para cenarios Web (@ui).
  * Gerencia o ciclo de vida do WebDriver.
+ *
+ * Screenshot configuravel via config.properties:
+ *   screenshot.mode=always        -> captura em sucesso e falha
+ *   screenshot.mode=failure_only  -> captura apenas em falha (padrao)
  */
 public class WebHooks {
 
@@ -63,7 +67,11 @@ public class WebHooks {
         WebDriver d = getDriver();
         if (d == null) return;
 
-        if (d instanceof TakesScreenshot) {
+        // Captura screenshot baseado na configuracao
+        String screenshotMode = env.getProperty("screenshot.mode");
+        boolean deveCapturar = "always".equals(screenshotMode) || scenario.isFailed();
+
+        if (deveCapturar && d instanceof TakesScreenshot) {
             byte[] screenshot = ((TakesScreenshot) d).getScreenshotAs(OutputType.BYTES);
             String status = scenario.isFailed() ? "FALHA" : "SUCESSO";
             scenario.attach(screenshot, "image/png", status + " - " + scenario.getName());

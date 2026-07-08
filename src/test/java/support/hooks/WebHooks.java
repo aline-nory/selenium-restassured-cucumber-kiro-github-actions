@@ -11,9 +11,10 @@ import support.helpers.LogUtils;
 import support.webDriver.DriverFactory;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Hooks para cenários Web (@ui).
+ * Hooks para cenarios Web (@ui).
  * Gerencia o ciclo de vida do WebDriver.
  */
 public class WebHooks {
@@ -30,8 +31,7 @@ public class WebHooks {
     @Before(value = "@ui", order = 0)
     public void getProperty(Scenario scenario) {
         this.scenario = scenario;
-        String scenarioName = scenario.getName();
-        LogUtils.printMessage("Iniciando cenario: " + scenarioName);
+        LogUtils.printMessage("Iniciando cenario: " + scenario.getName());
     }
 
     @Before(value = "@ui", order = 1)
@@ -46,10 +46,13 @@ public class WebHooks {
                 browserName = env.getProperty("browser");
             }
 
+            int implicitTimeout = Integer.parseInt(env.getProperty("timeout.implicit"));
+            int pageLoadTimeout = Integer.parseInt(env.getProperty("timeout.pageLoad"));
+
             driverFactory = new DriverFactory();
             driver.set(driverFactory.init_driver(browserName));
-            getDriver().manage().timeouts().implicitlyWait(10, java.util.concurrent.TimeUnit.SECONDS);
-            getDriver().manage().timeouts().pageLoadTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
+            getDriver().manage().timeouts().implicitlyWait(implicitTimeout, TimeUnit.SECONDS);
+            getDriver().manage().timeouts().pageLoadTimeout(pageLoadTimeout, TimeUnit.SECONDS);
         } else {
             LogUtils.printMessage("Driver inicializado, reutilizando instancia...");
         }
@@ -60,7 +63,6 @@ public class WebHooks {
         WebDriver d = getDriver();
         if (d == null) return;
 
-        // Captura screenshot em todos os cenários (evidência de execução)
         if (d instanceof TakesScreenshot) {
             byte[] screenshot = ((TakesScreenshot) d).getScreenshotAs(OutputType.BYTES);
             String status = scenario.isFailed() ? "FALHA" : "SUCESSO";

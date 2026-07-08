@@ -5,6 +5,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import support.environment.Environment;
 
 /**
  * Classe base para todos os Page Objects.
@@ -16,7 +17,8 @@ public abstract class BasePage {
 
     protected BasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, 10);
+        int timeout = Integer.parseInt(new Environment().getProperty("timeout.explicit"));
+        this.wait = new WebDriverWait(driver, timeout);
     }
 
     protected void navegar(String url) {

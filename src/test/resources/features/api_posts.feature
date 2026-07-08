@@ -50,3 +50,9 @@ Funcionalidade: API de Posts
   Cenário: Buscar post inexistente retorna 404
     Quando busco o post de ID 9999
     Então o status code da resposta deve ser 404
+
+  @smoke
+  Cenário: Validar contrato (schema) do post
+    Quando busco o post de ID 1
+    Então o status code da resposta deve ser 200
+    E a resposta deve estar de acordo com o schema "post-schema.json"

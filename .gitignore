@@ -25,6 +25,9 @@ Thumbs.db
 chromedriver*
 geckodriver*
 
+# Allure local (binario baixado pelo plugin)
+.allure/
+
 # Credenciais e certificados locais (específicos da máquina)
 *.cacerts
 .maven-cacerts

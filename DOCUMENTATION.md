@@ -35,7 +35,7 @@
   - [3.4 PostService](#34-postservice)
   - [3.5 PostRequest — Modelo POJO](#35-postrequest--modelo-pojo)
   - [3.6 PostBuilder — Builder Pattern com Faker](#36-postbuilder--builder-pattern-com-faker)
-  - [3.7 JsonUtils](#37-jsonútils)
+  - [3.7 JsonUtils](#37-jsonutils)
   - [3.8 Payloads externalizados](#38-payloads-externalizados)
   - [3.9 JSON Schema Validation](#39-json-schema-validation)
   - [3.10 Feature de API em português](#310-feature-de-api-em-português)
@@ -375,7 +375,7 @@ selenium-cucumber-project/
 │       │   │   │   └── PostSteps.java          # Steps de API
 │       │   │   └── ui/
 │       │   │       └── LoginSteps.java         # Steps de UI
-│       │   └── útils/
+│       │   └── utils/
 │       │       ├── JsonUtils.java              # Carregamento de JSON
 │       │       ├── LogUtils.java               # Logging corporativo
 │       │       └── ScreenshotUtils.java        # Captura de tela
@@ -514,7 +514,7 @@ O `pom.xml` é o coração de qualquer projeto Java gerenciado pelo Maven. Ele d
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.automação</groupId>
+    <groupId>com.automacao</groupId>
     <artifactId>selenium-restassured-cucumber-github-actions</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
@@ -719,7 +719,7 @@ package drivers;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import útils.LogUtils;
+import utils.LogUtils;
 
 /**
  * Cria instâncias de WebDriver.
@@ -829,7 +829,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import útils.LogUtils;
+import utils.LogUtils;
 
 /**
  * Classe base para todos os Page Objects.
@@ -989,8 +989,8 @@ Funcionalidade: Login no sistema
 |-----------|--------|--------|
 | Funcionalidade | Feature | Agrupa cenários relacionados |
 | Contexto | Background | Steps executados antes de cada cenário |
-| Cenário | Scenário | Caso de teste individual |
-| Esquema do Cenário | Scenário Outline | Template com múltiplas combinações |
+| Cenário | Scenario | Caso de teste individual |
+| Esquema do Cenário | Scenario Outline | Template com múltiplas combinações |
 | Exemplos | Examples | Tabela de dados para Outline |
 | Dado | Given | Pré-condição (setup) |
 | Quando | When | Ação do usuário |
@@ -1147,12 +1147,12 @@ import drivers.DriverFactory;
 import drivers.DriverManager;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import io.cucumber.java.Scenário;
+import io.cucumber.java.Scenario;
 import org.openqa.selenium.WebDriver;
-import útils.LogUtils;
-import útils.ScreenshotUtils;
+import utils.LogUtils;
+import utils.ScreenshotUtils;
 
-import java.útil.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Hooks para cenários @ui.
@@ -1166,8 +1166,8 @@ public class UiHooks {
     }
 
     @Before(value = "@ui", order = 0)
-    public void logScenário(Scenário scenário) {
-        LogUtils.info("=== [UI] " + scenário.getName() + " ===");
+    public void logScenario(Scenario scenario) {
+        LogUtils.info("=== [UI] " + scenario.getName() + " ===");
     }
 
     @Before(value = "@ui", order = 1)
@@ -1186,18 +1186,18 @@ public class UiHooks {
     }
 
     @After(value = "@ui")
-    public void closeBrowser(Scenário scenário) {
+    public void closeBrowser(Scenario scenario) {
         WebDriver driver = DriverManager.getDriver();
         if (driver == null) return;
 
         String mode = env.get("screenshot.mode", "failure_only");
-        boolean shouldCapture = "always".equals(mode) || scenário.isFailed();
+        boolean shouldCapture = "always".equals(mode) || scenario.isFailed();
 
         if (shouldCapture) {
             byte[] screenshot = ScreenshotUtils.capture(driver);
             if (screenshot.length > 0) {
-                String status = scenário.isFailed() ? "FALHA" : "SUCESSO";
-                scenário.attach(screenshot, "image/png", status + " - " + scenário.getName());
+                String status = scenario.isFailed() ? "FALHA" : "SUCESSO";
+                scenario.attach(screenshot, "image/png", status + " - " + scenario.getName());
                 LogUtils.info("Screenshot [" + status + "]");
             }
         }
@@ -1228,7 +1228,7 @@ graph LR
 - `order = 0` e `order = 1` garantem sequência: primeiro loga, depois abre o browser. Ordens menores executam primeiro.
 - O `if (DriverManager.getDriver() == null)` previne reabrir o navegador se ele já estiver aberto (defensivo).
 - O screenshot mode é configurável por ambiente: em DEV capture apenas falhas (economiza tempo), em HML capture sempre (mais evidências).
-- `scenário.attach()` anexa a screenshot diretamente ao relatório Cucumber/Allure.
+- `scenario.attach()` anexa a screenshot diretamente ao relatório Cucumber/Allure.
 
 > **Dica:** O `@After` sempre executa, mesmo se o cenário falhou. Por isso ele é o local perfeito para cleanup (fechar browser, limpar dados). Nunca faça cleanup no último step.
 
@@ -1239,7 +1239,7 @@ graph LR
 A captura de evidências é essencial para rastreabilidade. O ScreenshotUtils encapsula a lógica de captura, enquanto o UiHooks decide QUANDO capturar com base na configuração.
 
 ```java
-package útils;
+package utils;
 
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -1272,10 +1272,10 @@ A decisão de modo fica no arquivo de propriedades do ambiente. O código em UiH
 
 ```java
 String mode = env.get("screenshot.mode", "failure_only");
-boolean shouldCapture = "always".equals(mode) || scenário.isFailed();
+boolean shouldCapture = "always".equals(mode) || scenario.isFailed();
 ```
 
-A screenshot é retornada como `byte[]` e anexada ao cenário Cucumber via `scenário.attach()`. Isso garante que a imagem aparece tanto no relatório Cucumber HTML quanto no Allure Report.
+A screenshot é retornada como `byte[]` e anexada ao cenário Cucumber via `scenario.attach()`. Isso garante que a imagem aparece tanto no relatório Cucumber HTML quanto no Allure Report.
 
 > **Dica:** Em ambientes de homologação, use `always` — isso gera evidências visuais para auditoria mesmo quando os testes passam.
 
@@ -1389,7 +1389,7 @@ import io.qameta.allure.Allure;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import útils.LogUtils;
+import utils.LogUtils;
 
 import static io.restassured.RestAssured.given;
 
@@ -1521,7 +1521,7 @@ O PostService encapsula toda a lógica de negócio relacionada ao recurso `/post
 package api.services;
 
 import api.clients.RestClient;
-import útils.JsonUtils;
+import utils.JsonUtils;
 
 /**
  * Service para o recurso /posts.
@@ -1635,7 +1635,7 @@ package api.builders;
 import api.models.PostRequest;
 import com.github.javafaker.Faker;
 
-import java.útil.Locale;
+import java.util.Locale;
 
 /**
  * Builder para dados de Post.
@@ -1709,12 +1709,12 @@ PostRequest custom = PostBuilder.valid()
 O JsonUtils é um útilitário para carregar arquivos JSON do classpath. Ele abstrai a leitura de arquivos e lança exceção semântica quando o arquivo não existe.
 
 ```java
-package útils;
+package utils;
 
 import exceptions.FrameworkException;
 
 import java.io.InputStream;
-import java.útil.Scanner;
+import java.util.Scanner;
 
 /**
  * Utilitário para leitura de arquivos JSON do classpath.

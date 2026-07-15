@@ -50,6 +50,10 @@ public class RestClient {
     public String getResponseBody() { return response.getBody().asString(); }
 
     private void execute(String method, String endpoint) {
+        if (request == null || baseUri == null) {
+            throw new IllegalStateException(
+                    "RestClient nao configurado: chame setBaseUri() antes de executar requests");
+        }
         LogUtils.info(method + " " + baseUri + endpoint);
         switch (method) {
             case "GET": response = request.when().get(endpoint).then().extract().response(); break;

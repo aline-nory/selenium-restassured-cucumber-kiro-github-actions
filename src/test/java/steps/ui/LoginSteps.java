@@ -23,6 +23,18 @@ public class LoginSteps {
         this.env = env;
     }
 
+    @Dado("que estou logado como administrador")
+    public void loginAsAdminFull() {
+        int explicitWait = env.getInt("timeout.explicit", 10);
+        loginPage = new LoginPage(DriverManager.getDriver(), explicitWait);
+        dashboardPage = new DashboardPage(DriverManager.getDriver(), explicitWait);
+        loginPage.open(env.baseUrl);
+        loginPage.fillUsername(env.get("usuario.admin"));
+        loginPage.fillPassword(env.get("senha.admin"));
+        loginPage.clickLogin();
+        dashboardPage.ensureLoaded();
+    }
+
     @Dado("que estou na página de login")
     public void openLogin() {
         int explicitWait = env.getInt("timeout.explicit", 10);

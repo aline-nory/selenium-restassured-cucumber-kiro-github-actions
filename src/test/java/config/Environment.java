@@ -14,14 +14,16 @@ public class Environment {
     private final ConfigReader config;
     private final String env;
 
-    public String baseUrl;
-    public String apiBaseUrl;
+    public final String baseUrl;
+    public final String apiBaseUrl;
+    public final String siteRoot;
 
     public Environment() {
         this.env = resolveEnvironment();
         this.config = new ConfigReader("environments/" + env + ".properties");
         this.baseUrl = config.get("base.url");
         this.apiBaseUrl = config.get("api.base.url");
+        this.siteRoot = baseUrl.replaceAll("/web/index\\.php/.*", "");
     }
 
     public String get(String key) {
@@ -38,6 +40,14 @@ public class Environment {
 
     public String getEnv() {
         return env;
+    }
+
+    /**
+     * Monta a URL completa de uma pagina interna a partir do path relativo.
+     * Ex: getPageUrl("/web/index.php/pim/viewEmployeeList")
+     */
+    public String getPageUrl(String path) {
+        return siteRoot + path;
     }
 
     private String resolveEnvironment() {

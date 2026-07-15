@@ -9,44 +9,41 @@
 ![Allure](https://img.shields.io/badge/Report-Allure-orange)
 ![Kiro AI](https://img.shields.io/badge/Generated%20with-Kiro%20AI-blueviolet)
 
-Projeto de automação de testes **Web (UI)** e **API REST** com pipeline CI/CD. Desenvolvido com Kiro AI como portfólio de QA.
+Framework de automacao de testes **Web (UI)** e **API REST** com pipeline CI/CD, desenvolvido com Kiro AI como portfolio de QA.
 
 ---
 
 ## Destaques do projeto
 
-- **BDD em português** com Cucumber — cenários legíveis para qualquer pessoa do time
-- **Page Object Pattern** com herança (`BasePage`) — código reutilizável e fácil de manter
-- **Testes de UI** com Selenium WebDriver — validação de fluxos no navegador
-- **Testes de API** com REST Assured — cobertura completa dos verbos HTTP (GET, POST, PUT, DELETE)
-- **Validação de contrato** com JSON Schema — garante que a API respeita o formato esperado
-- **Payloads externalizados** — requests em arquivos `.json` separados do código
-- **Injeção de dependência** com PicoContainer — isolamento por cenário
-- **Separação por camadas** — pages, steps, api, hooks, config, drivers, utils (padrão enterprise)
-- **CI/CD com GitHub Actions** — testes executados automaticamente a cada push
-- **Allure Report** — relatório interativo com gráficos, histórico e screenshots
-- **Screenshots automáticas** — capturadas em cenários de falha (configurável)
-- **Logging corporativo** com SLF4J + Logback — console + arquivo
-- **Configuração por ambiente** — troca entre DEV/HML sem alterar código, com override via variável de ambiente (pronto para GitHub Secrets)
-- **Detecção automática de CI** — modo headless ativado automaticamente em servidores
-- **Reexecução automática de falhas** — mitiga flakiness ao depender de serviços públicos de terceiros (JSONPlaceholder, OrangeHRM demo)
-
+- **Arquitetura em camadas** — Pages, Steps, Services, Hooks e Config com responsabilidades bem definidas
+- **Explicit waits** em toda interacao com o DOM — estabilidade em aplicacoes assincronas
+- **Validacao de carregamento** em cada Page Object antes de interagir
+- **Driver isolado por cenario** — independencia total entre execucoes
+- **Retry automatico** de cenarios falhados (1x) — resiliencia contra instabilidade de rede
+- **Semantica BDD** — `@Dado` prepara, `@Quando` executa, `@Entao` valida
+- **Validacao de contrato** com JSON Schema
+- **Payloads externalizados** em arquivos `.json`
+- **Pipeline CI/CD** com GitHub Actions — headless automatico, Allure no GitHub Pages
+- **Configuracao por ambiente** com override via variavel de ambiente
+- **WebDriverManager** — resolve chromedriver automaticamente
+- **Custom agents Kiro** — `qa-scaffold` gera artefatos, `framework-reviewer` audita arquitetura
 ---
 
 ## Stack
 
-| Tecnologia | Versão | Função |
+| Tecnologia | Versao | Funcao |
 |---|---|---|
 | Java | 8 | Linguagem |
-| Maven | 3.9 | Build e dependências |
-| Selenium WebDriver | 3.141.59 | Automação de UI |
-| Cucumber | 7.18 | BDD em português |
+| Maven | 3.9 | Build e dependencias |
+| Selenium WebDriver | 3.141.59 | Automacao de UI |
+| WebDriverManager | 5.8.0 | Resolucao automatica do chromedriver |
+| Cucumber | 7.18 | BDD em portugues |
 | JUnit | 4.13 | Runner e assertions |
-| REST Assured | 4.5.1 | Automação de API REST |
-| Allure Report | 2.24 | Relatório interativo |
-| PicoContainer | 7.18 | Injeção de dependência |
-| SLF4J + Logback | 1.7/1.2 | Logging corporativo |
-| Jackson Databind | 2.15.2 | Leitura/edição de payloads JSON |
+| REST Assured | 4.5.1 | Automacao de API REST |
+| Allure Report | 2.24 | Relatorio interativo |
+| PicoContainer | 7.18 | Injecao de dependencia por cenario |
+| SLF4J + Logback | 1.7/1.2 | Logging estruturado |
+| Jackson Databind | 2.15.2 | Leitura/edicao de payloads JSON |
 | GitHub Actions | - | Pipeline CI/CD |
 
 ---
@@ -59,117 +56,137 @@ src/test/java/
 │   └── TestRunner.java              # Ponto de entrada Cucumber + JUnit
 ├── steps/
 │   ├── ui/
-│   │   └── LoginSteps.java         # Steps de UI
+│   │   ├── LoginSteps.java          # Steps de login e autenticacao
+│   │   └── EmployeeListSteps.java   # Steps da lista de empregados
 │   └── api/
 │       └── PostSteps.java           # Steps de API
 ├── pages/
 │   ├── base/
-│   │   └── BasePage.java            # Classe abstrata (ações comuns)
-│   └── login/
-│       └── LoginPage.java           # Page Object do login
+│   │   └── BasePage.java            # Classe abstrata (acoes comuns + waits)
+│   ├── login/
+│   │   └── LoginPage.java           # Page Object do login
+│   ├── dashboard/
+│   │   └── DashboardPage.java       # Page Object do dashboard (pos-login)
+│   └── employeelist/
+│       └── EmployeeListPage.java    # Page Object da lista de empregados
 ├── api/
 │   ├── clients/
 │   │   └── RestClient.java          # Cliente HTTP com Allure attachments
 │   └── services/
-│       └── PostService.java         # Lógica de negócio /posts
+│       └── PostService.java         # Logica de negocio /posts
 ├── hooks/
 │   ├── UiHooks.java                 # Ciclo de vida WebDriver (@ui)
 │   └── ApiHooks.java                # Setup de API (@api)
 ├── config/
-│   ├── Environment.java             # Gerenciamento de ambiente
-│   └── ConfigReader.java            # Leitura de .properties
+│   ├── Environment.java             # Gerenciamento de ambiente + siteRoot
+│   └── ConfigReader.java            # Leitura de .properties + env var override
 ├── drivers/
-│   ├── DriverFactory.java           # Criação do Chrome (local/headless)
+│   ├── DriverFactory.java           # Criacao do Chrome (WebDriverManager)
 │   └── DriverManager.java           # ThreadLocal para paralelismo
 ├── utils/
 │   ├── LogUtils.java                # Logging SLF4J
-│   ├── JsonUtils.java               # Leitura/edição de payloads JSON do classpath
-│   └── ScreenshotUtils.java         # Captura de evidências
+│   ├── JsonUtils.java               # Leitura/edicao de payloads JSON
+│   └── ScreenshotUtils.java         # Captura de evidencias
 └── exceptions/
-    └── FrameworkException.java       # Exceção customizada do framework
+    └── FrameworkException.java       # Excecao customizada do framework
 
 src/test/resources/
 ├── features/
 │   ├── ui/
-│   │   └── login.feature            # Cenários de UI (OrangeHRM)
+│   │   ├── login.feature            # Cenarios de login (OrangeHRM)
+│   │   └── employee-list.feature    # Cenarios da lista de empregados
 │   └── api/
-│       └── posts.feature            # Cenários de API (JSONPlaceholder)
+│       └── posts.feature            # Cenarios de API (JSONPlaceholder)
 ├── environments/
-│   ├── dev.properties               # Configuração DEV
-│   └── hml.properties               # Configuração HML
+│   ├── dev.properties               # Configuracao DEV
+│   └── hml.properties               # Configuracao HML
 ├── payloads/posts/
-│   ├── create-post.json             # Body de criação
-│   └── update-post.json             # Body de atualização
+│   ├── create-post.json             # Body de criacao
+│   └── update-post.json             # Body de atualizacao
 ├── schemas/
 │   └── post-schema.json             # Contrato JSON da API
-└── logback.xml                      # Configuração de logging
+└── logback.xml                      # Configuracao de logging
+
+.kiro/agents/
+├── qa-scaffold.md                   # Agent para gerar Page Objects/Steps/Features
+└── framework-reviewer.md            # Agent para auditar arquitetura do framework
 ```
 
 ---
 
-## Cenários de teste
+## Cenarios de teste
 
 ### UI — Login (OrangeHRM Demo)
 
-- Login com credenciais válidas
-- Login com senha incorreta
-- Login com múltiplas credenciais inválidas (Scenario Outline)
+| Cenario | Tag |
+|---------|-----|
+| Login com credenciais validas | `@smoke` |
+| Login com senha incorreta | - |
+| Login com credenciais invalidas (Scenario Outline, 2 combinacoes) | - |
+
+### UI — Employee List (OrangeHRM Demo)
+
+| Cenario | Tag |
+|---------|-----|
+| Visualizar tabela de empregados | `@smoke` |
+| Buscar empregado (com resultados) | - |
+| Buscar empregado inexistente (No Records Found) | - |
+| Navegar para adicionar novo empregado | - |
+| Editar empregado da lista | - |
 
 ### API — Posts (JSONPlaceholder)
 
-- `GET /posts` — listar todos os posts
-- `GET /posts/{id}` — buscar por ID
-- `GET /posts?userId=1` — filtrar por usuário
-- `POST /posts` — criar novo post
-- `PUT /posts/{id}` — atualizar post
-- `DELETE /posts/{id}` — deletar post
-- `GET /posts/9999` — recurso inexistente (404)
-- Validação de contrato (JSON Schema)
+| Cenario | Tag |
+|---------|-----|
+| `GET /posts` — listar todos | `@smoke` |
+| `GET /posts/{id}` — buscar por ID | `@smoke` |
+| `GET /posts?userId=1` — filtrar por usuario | - |
+| `POST /posts` — criar novo post | - |
+| `PUT /posts/{id}` — atualizar post | - |
+| `DELETE /posts/{id}` — deletar post | - |
+| `GET /posts/9999` — recurso inexistente (404) | - |
+| Validacao de contrato (JSON Schema) | `@smoke` |
+
+**Total: 17 cenarios** (8 API + 5 Employee List + 4 Login)
 
 ---
 
 ## Tags
 
-| Tag | Tipo | Como rodar |
+| Tag | Escopo | Comando |
 |---|---|---|
-| `@ui` | Cenários Web (Chrome) | `mvn test -Dcucumber.filter.tags="@ui"` |
-| `@api` | Cenários de API | `mvn test -Dcucumber.filter.tags="@api"` |
-| `@smoke` | Validação rápida | `mvn test -Dcucumber.filter.tags="@smoke"` |
-| sem filtro | Regressão completa | `mvn test` |
+| `@ui` | Cenarios Web (Chrome) | `mvn test -Dcucumber.filter.tags="@ui"` |
+| `@api` | Cenarios de API | `mvn test -Dcucumber.filter.tags="@api"` |
+| `@smoke` | Validacao rapida (5 cenarios) | `mvn test -Dcucumber.filter.tags="@smoke"` |
+| sem filtro | Regressao completa (17 cenarios) | `mvn test` |
 
 ---
 
-## Pré-requisitos locais
+## Pre-requisitos locais
 
-- Java 8, Maven 3.9+ e Google Chrome instalados.
-- **ChromeDriver** compatível com a versão do Chrome instalado — baixe em
-  [chrome-for-testing](https://googlechromelabs.github.io/chrome-for-testing/) e aponte a variável de ambiente:
-  ```bash
-  # Windows
-  set CHROME_DRIVER_PATH=C:\chromedriver\chromedriver.exe
-  # Linux/Mac
-  export CHROME_DRIVER_PATH=/usr/local/bin/chromedriver
-  ```
-  Sem essa variável, os cenários `@ui` falham com uma mensagem explicando o que falta.
-  Em CI (`CI=true`), o Chrome roda headless e o ChromeDriver já vem instalado pelo workflow — nada a configurar.
-- Testes `@api` não precisam de Chrome/ChromeDriver.
+- **Java 8** e **Maven 3.9+** instalados
+- **Google Chrome** instalado (qualquer versao recente)
+- O **ChromeDriver** e resolvido automaticamente via WebDriverManager — nao precisa baixar manualmente
+- Em CI (`CI=true`), o Chrome roda headless automaticamente
+- Testes `@api` nao precisam de Chrome
+
+---
 
 ## Como executar
 
 ```bash
-mvn test                                        # todos os cenários
-mvn test -Dcucumber.filter.tags="@api"          # só API
-mvn test -Dcucumber.filter.tags="@ui"           # só UI
-mvn test -Dcucumber.filter.tags="@smoke"        # smoke
+mvn test                                        # todos os cenarios (17)
+mvn test -Dcucumber.filter.tags="@api"          # so API (8)
+mvn test -Dcucumber.filter.tags="@ui"           # so UI (9)
+mvn test -Dcucumber.filter.tags="@smoke"        # smoke (5)
 mvn test -Denvironment=hml                      # outro ambiente
 ```
 
-Cenários com falha são reexecutados automaticamente uma vez (`rerunFailingTestsCount`) antes de reportar
-falha definitiva — mitiga instabilidade transitória dos serviços públicos usados como alvo (JSONPlaceholder, OrangeHRM demo).
+Cenarios com falha sao reexecutados automaticamente uma vez antes de reportar falha definitiva — mitiga instabilidade transitoria dos servicos publicos (JSONPlaceholder, OrangeHRM demo).
 
 ---
 
-## Relatórios
+## Relatorios
 
 ```bash
 mvn allure:serve                                # abre Allure no navegador
@@ -180,62 +197,41 @@ mvn allure:report                               # gera em target/site/
 |---|---|
 | Cucumber HTML | `target/cucumber-reports/cucumber.html` |
 | Allure Report | `mvn allure:serve` (interativo) |
-| Log de execução | `target/test-execution.log` |
-| GitHub Pages | Automático via CI |
+| Log de execucao | `target/test-execution.log` |
+| GitHub Pages | Automatico via CI (push para main) |
 
 ---
 
 ## Pipeline CI/CD
 
-O GitHub Actions executa automaticamente em cada push para `main`/`develop` e em pull requests para `main`,
-em dois jobs separados (princípio do menor privilégio — só o job de publicação tem permissão de escrita):
+O GitHub Actions executa automaticamente em cada push para `main`/`develop` e em pull requests para `main`, em dois jobs separados (principio do menor privilegio):
 
-**Job `testes`** (permissão apenas de leitura + `checks: write`)
-1. Configura Java 8 e instala Chrome + ChromeDriver compatível (`browser-actions/setup-chrome`)
-2. Executa `mvn test` com `CI=true` (headless automático)
-3. Publica relatório Cucumber e resultados Allure como artefatos, e o resumo JUnit inline no GitHub
+**Job `testes`** (permissao read-only + `checks: write`)
+1. Configura Java 8 e instala Chrome + ChromeDriver compativel
+2. Executa `mvn test` com `CI=true` (headless automatico)
+3. Publica resultados JUnit inline no GitHub e artefatos Allure
 
-**Job `publicar-relatorio`** (permissão de escrita — só roda em push para `main`)
-4. Baixa os resultados Allure do job de testes
-5. Gera e publica o Allure Report no GitHub Pages
+**Job `publicar-relatorio`** (permissao de escrita — so roda em push para `main`)
+4. Gera e publica o Allure Report no GitHub Pages
 
-Ações de terceiros são fixadas em versões imutáveis (nunca `@master`), e o job de publicação
-nunca roda em pull requests — uma PR não pode sobrescrever o relatório público.
+Acoes de terceiros sao fixadas em versoes imutaveis (nunca `@master`), e o job de publicacao nunca roda em pull requests.
 
 ---
 
-## Evidências
-
-- Screenshots capturadas em cenários `@ui` com falha (configurável via `screenshot.mode`)
-- Embutidas no Allure Report e no `cucumber.html`
-- Request/Response de API anexados automaticamente ao Allure
-
----
-
-## Configuração por ambiente
+## Configuracao por ambiente
 
 ```bash
-mvn test                       # usa dev.properties (padrão)
+mvn test                       # usa dev.properties (padrao)
 mvn test -Denvironment=hml     # usa hml.properties
 ```
 
-Configurações em `src/test/resources/environments/`.
+Arquivos em `src/test/resources/environments/`. Qualquer chave pode ser sobrescrita por variavel de ambiente sem tocar nos arquivos: `senha.admin` vira `SENHA_ADMIN` (ver `ConfigReader`).
 
-### Credenciais
-
-Os valores em `dev.properties`/`hml.properties` (ex. `senha.admin`) são as credenciais públicas do
-[demo do OrangeHRM](https://opensource-demo.orangehrmlive.com/) — não são segredos reais, por isso ficam
-no repositório para facilitar rodar o projeto localmente sem nenhuma configuração extra.
-
-Qualquer chave pode ser sobrescrita por variável de ambiente sem tocar nos arquivos: `senha.admin` vira
-`SENHA_ADMIN` (ver `ConfigReader`). Em um projeto real, aponte essas variáveis para GitHub Secrets / um
-gerenciador de segredos (Vault, AWS Secrets Manager) em vez de manter valores reais em `.properties`.
+As credenciais no repositorio sao as credenciais publicas do [demo OrangeHRM](https://opensource-demo.orangehrmlive.com/) — nao sao segredos reais. Em um projeto real, use GitHub Secrets ou um gerenciador de segredos (Vault, AWS Secrets Manager).
 
 ---
 
-## Validação de contrato (JSON Schema)
-
-O cenário "Validar contrato do post" garante que a API retorna a estrutura esperada:
+## Validacao de contrato (JSON Schema)
 
 ```json
 {
@@ -255,12 +251,6 @@ Se a API mudar a estrutura da resposta, o teste detecta a quebra de contrato ime
 
 ---
 
-## Documentação
-
-Consulte [DOCUMENTATION.md](DOCUMENTATION.md) para o guia técnico completo do framework.
-
----
-
 ## Gerado com Kiro AI
 
-Projeto criado com [Kiro](https://kiro.dev), ambiente de desenvolvimento com IA.
+Projeto criado com [Kiro](https://kiro.dev), ambiente de desenvolvimento com IA. Os custom agents (`qa-scaffold` e `framework-reviewer`) em `.kiro/agents/` demonstram como IA pode ser integrada ao fluxo de desenvolvimento de testes.

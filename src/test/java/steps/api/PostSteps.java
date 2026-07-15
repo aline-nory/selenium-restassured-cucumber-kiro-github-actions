@@ -34,12 +34,12 @@ public class PostSteps {
 
     @Dado("que tenho os dados de um novo post")
     public void prepareNewPost() {
-        postService.create();
+        postService.prepareCreate();
     }
 
     @Dado("que tenho os dados de atualização do post {int}")
     public void prepareUpdate(int id) {
-        postService.update(id);
+        postService.prepareUpdate(id);
     }
 
     @Quando("busco todos os posts")
@@ -59,12 +59,12 @@ public class PostSteps {
 
     @Quando("envio o novo post")
     public void submitPost() {
-        // POST executado no @Dado via postService.create()
+        postService.submitCreate();
     }
 
     @Quando("atualizo o post {int}")
     public void updatePost(int id) {
-        // PUT executado no @Dado via postService.update()
+        postService.submitUpdate(id);
     }
 
     @Quando("deleto o post {int}")

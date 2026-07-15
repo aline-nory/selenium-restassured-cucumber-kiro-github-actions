@@ -27,16 +27,22 @@ public class PostService {
         client.get("/posts?userId=" + userId);
     }
 
-    public void create() {
+    public void prepareCreate() {
         String body = JsonUtils.load("payloads/posts/create-post.json");
         client.setBody(body);
+    }
+
+    public void submitCreate() {
         client.post("/posts");
     }
 
-    public void update(int id) {
+    public void prepareUpdate(int id) {
         String rawBody = JsonUtils.load("payloads/posts/update-post.json");
         String body = JsonUtils.setIntField(rawBody, "id", id);
         client.setBody(body);
+    }
+
+    public void submitUpdate(int id) {
         client.put("/posts/" + id);
     }
 
